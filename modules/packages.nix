@@ -62,5 +62,14 @@
     easyeffects
     polkit_gnome
     pavucontrol
+
+    # apps (zen-browser, helium, sublime4 come from overlays in flake.nix)
+    helium
+    zen-browser
+    discord
+    sublime4
+    zotero
+    anki
+    foliate
   ];
 }
