@@ -11,18 +11,29 @@ Home Manager (flake) version of the `~/dotfiles` stow repo. Nothing here has bee
 
 Links point **out of the store** to `~/nix-home/config`, so editing a config takes effect immediately without rebuilding. If you move this folder, update `repoDir` in `home.nix`.
 
-## First-time setup (Fedora)
-1. Install Nix (with flakes): `curl -L https://nixos.org/nix/install | sh -s -- --daemon`, then add
-   `experimental-features = nix-command flakes` to `/etc/nix/nix.conf`.
-2. Move the existing files out of the way (Home Manager refuses to overwrite them), or run stow's `-D` first: `cd ~/dotfiles && stow -D */`.
-   Also back up `~/.zshrc`, `~/.tmux.conf`.
-3. Flakes only see git-tracked files: `cd ~/nix-home && git init && git add -A`.
-4. `nix run home-manager/master -- switch --flake ~/nix-home#purpleafk -b backup`
-   afterwards: `home-manager switch --flake ~/nix-home#purpleafk`
+## Using it on NixOS
+1. In `/etc/nixos/configuration.nix` enable flakes and Hyprland (system level):
+   ```nix
+   nix.settings.experimental-features = [ "nix-command" "flakes" ];
+   programs.hyprland.enable = true;
+   programs.zsh.enable = true;
+   users.users.purpleafk.shell = pkgs.zsh;
+   security.pam.services.hyprlock = {};   # hyprlock can't unlock without this
+   ```
+   then `sudo nixos-rebuild switch`.
+2. Copy this folder to `~/nix-home` and run
+   `nix run home-manager/master -- switch --flake ~/nix-home#purpleafk`
+   (afterwards just `home-manager switch --flake ~/nix-home#purpleafk`).
 
-## Not handled by nix (keep using the distro)
-- `hyprland`, `hyprlock`, `hyprshot`, GPU drivers, `easyeffects`, `polkit-gnome` (config is linked, packages are not; Hyprland from nix needs nixGL on Fedora)
-- `kitty` (set `installGui = true` in `home.nix` to install it from nix anyway)
-- `waywall`, `helium`, docker, flatpaks, `system/*.txt` package lists
-- zsh plugins are still fetched by zinit at first shell start (as before)
+## Things to fix after moving to NixOS
+- `hypr/hyprland.conf` starts polkit from `/usr/lib/polkit-gnome/...`, which doesn't exist on NixOS.
+  Use `${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1`, or just
+  `exec-once = systemctl --user start polkit-gnome-authentication-agent-1` if you enable it in NixOS.
+- nvim's mason downloads prebuilt LSP binaries, which often fail on NixOS; install LSPs via `home.packages` instead.
+- `.zshrc` sources things outside this repo (`~/cf-contests`, `~/cf/scripts`, fnm, opencode, spicetify); copy those over too.
+- Wallpapers: copy your `~/.local/share/wallpapers` folder over (it's not in this repo).
+
+## Not managed here
+- flatpaks (`system/flatpak-packages.txt` in the old dotfiles), docker, GPU drivers: those go in `configuration.nix`
+- zsh plugins are still fetched by zinit at first shell start
 - `config/helium/startpage.html` is copied but not linked anywhere

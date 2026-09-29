@@ -34,7 +34,7 @@
     wallust
     matugen
 
-    # wayland / hyprland helpers (hyprland, hyprlock themselves: see README)
+    # wayland / hyprland helpers (hyprland itself: enable it in configuration.nix)
     waybar
     rofi
     swaynotificationcenter
@@ -57,5 +57,10 @@
     comfortaa
   ] ++ lib.optionals installGui [
     kitty
+    hyprlock
+    hyprshot
+    easyeffects
+    polkit_gnome
+    pavucontrol
   ];
 }
