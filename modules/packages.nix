@@ -38,7 +38,7 @@
     waybar
     rofi
     swaynotificationcenter
-    swww
+    awww
     cliphist
     wl-clipboard
     grim
