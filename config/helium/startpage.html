@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>~</title>
+    <style>
+      :root {
+        --bg: #0c0e0b;
+        --fg: #cfd3c2;
+        --dim: #5c6154;
+        --accent: #7fae55;
+        --hint: #dba24a;
+        --err: #c96a4e;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html,
+      body {
+        height: 100%;
+        background: var(--bg);
+        color: var(--fg);
+        font-family:
+          ui-monospace, "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
+        font-size: 15px;
+      }
+      body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding-top: 12vh;
+      }
+      #wrap {
+        width: 560px;
+        max-width: 88vw;
+      }
+
+      #clock {
+        color: var(--dim);
+        font-size: 13px;
+        margin-bottom: 2.5em;
+        letter-spacing: 0.02em;
+      }
+
+      #searchline {
+        display: flex;
+        align-items: baseline;
+        border-bottom: 1px solid #24261f;
+        padding-bottom: 10px;
+        margin-bottom: 1.6em;
+      }
+      #prompt {
+        color: var(--accent);
+        margin-right: 0.6em;
+      }
+      #q {
+        flex: 1;
+        background: transparent;
+        border: none;
+        outline: none;
+        color: var(--fg);
+        font: inherit;
+        caret-color: var(--accent);
+      }
+      #engine {
+        color: var(--dim);
+        font-size: 12px;
+        margin-left: 0.8em;
+        white-space: nowrap;
+      }
+      #engine b {
+        color: var(--hint);
+        font-weight: normal;
+      }
+
+      #marks {
+        list-style: none;
+      }
+      #marks li {
+        display: flex;
+        align-items: center;
+        padding: 3px 0;
+        color: var(--dim);
+        cursor: pointer;
+      }
+      #marks li.sel {
+        color: var(--fg);
+      }
+      #marks li.sel .key {
+        color: var(--bg);
+        background: var(--accent);
+      }
+      .key {
+        display: inline-block;
+        width: 1.4em;
+        text-align: center;
+        color: var(--hint);
+        margin-right: 0.9em;
+        border-radius: 2px;
+      }
+      .name {
+        flex: 1;
+      }
+      .url {
+        color: #454a3e;
+        font-size: 12px;
+      }
+
+      #help {
+        margin-top: 2.2em;
+        color: #3d4136;
+        font-size: 12px;
+        line-height: 1.7;
+        border-top: 1px solid #1c1e18;
+        padding-top: 1em;
+      }
+      #help span {
+        color: var(--dim);
+      }
+      #help kbd {
+        color: var(--hint);
+      }
+
+      #msg {
+        position: fixed;
+        bottom: 1.4em;
+        left: 50%;
+        transform: translateX(-50%);
+        color: var(--err);
+        font-size: 12px;
+        opacity: 0;
+        transition: opacity 0.2s;
+      }
+      #msg.show {
+        opacity: 1;
+      }
+
+      ::selection {
+        background: var(--accent);
+        color: var(--bg);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="wrap">
+      <div id="clock">--:--:--</div>
+
+      <div id="searchline">
+        <span id="prompt">/</span>
+        <input id="q" autocomplete="off" spellcheck="false" autofocus />
+        <span id="engine">default: <b id="engname">google</b></span>
+      </div>
+
+      <ul id="marks"></ul>
+
+      <!-- <div id="help"> -->
+      <!--   <span>search</span> <kbd>/</kbd> or <kbd>i</kbd> to focus, -->
+      <!--   <kbd>enter</kbd> go, <kbd>esc</kbd> exit · <span>prefix</span> -->
+      <!--   <kbd>d</kbd> ddg <kbd>y</kbd> youtube <kbd>gh</kbd> github -->
+      <!--   <kbd>w</kbd> wiki (default: google) · <span>list</span> -->
+      <!--   <kbd>j</kbd>/<kbd>k</kbd> move <kbd>enter</kbd> open · or press a mark's -->
+      <!--   letter directly -->
+      <!-- </div> -->
+    </div>
+    <div id="msg"></div>
+
+    <script>
+      /* Chromium refuses to autofocus anything on a pristine New Tab Page load —
+   the omnibox gets native focus instead, and page JS never even sees the
+   keystrokes. But a page that has *navigated* (even to itself) is no longer
+   treated as a pristine NTP load, so we force one silent reload first. */
+      if (location.search !== "?focus") {
+        location.search = "?focus";
+      } else {
+        (function () {
+          /* ---- edit your marks here: key, name, url ---- */
+          const MARKS = [
+            { k: "a", name: "github", url: "https://github.com" },
+            { k: "s", name: "codeberg", url: "https://codeberg.org" },
+            { k: "d", name: "mail", url: "https://mail.google.com" },
+            { k: "f", name: "arch wiki", url: "https://wiki.archlinux.org" },
+            { k: "g", name: "youtube", url: "https://youtube.com" },
+            { k: "h", name: "reddit", url: "https://reddit.com" },
+            { k: "l", name: "hn", url: "https://news.ycombinator.com" },
+            { k: ";", name: "codeforces", url: "https://codeforces.com" },
+          ];
+
+          /* ---- search engines: prefix -> {name, url template} ---- */
+          const ENGINES = {
+            "": {
+              name: "google",
+              url: (q) =>
+                "https://www.google.com/search?q=" + encodeURIComponent(q),
+            },
+            d: {
+              name: "ddg",
+              url: (q) => "https://duckduckgo.com/?q=" + encodeURIComponent(q),
+            },
+            y: {
+              name: "youtube",
+              url: (q) =>
+                "https://www.youtube.com/results?search_query=" +
+                encodeURIComponent(q),
+            },
+            gh: {
+              name: "github",
+              url: (q) =>
+                "https://github.com/search?q=" + encodeURIComponent(q),
+            },
+            w: {
+              name: "wiki",
+              url: (q) =>
+                "https://en.wikipedia.org/w/index.php?search=" +
+                encodeURIComponent(q),
+            },
+          };
+
+          const q = document.getElementById("q");
+          const engname = document.getElementById("engname");
+          const marksEl = document.getElementById("marks");
+          const msgEl = document.getElementById("msg");
+          let sel = -1; // selected mark index, -1 = none (input focused)
+
+          function renderMarks() {
+            marksEl.innerHTML = "";
+            MARKS.forEach((m, i) => {
+              const li = document.createElement("li");
+              li.className = i === sel ? "sel" : "";
+              li.innerHTML = `<span class="key">${m.k}</span><span class="name">${m.name}</span><span class="url">${m.url.replace(/^https?:\/\//, "")}</span>`;
+              li.onclick = () => go(m.url);
+              marksEl.appendChild(li);
+            });
+          }
+
+          function go(url) {
+            location.href = url;
+          }
+
+          function flash(text) {
+            msgEl.textContent = text;
+            msgEl.classList.add("show");
+            setTimeout(() => msgEl.classList.remove("show"), 1200);
+          }
+
+          function parseInput(raw) {
+            const trimmed = raw.trim();
+            if (!trimmed) return null;
+            // looks like a URL or domain
+            if (/^https?:\/\//i.test(trimmed)) return trimmed;
+            if (
+              /^[\w-]+(\.[\w-]+)+(\/.*)?$/.test(trimmed) &&
+              !trimmed.includes(" ")
+            )
+              return "https://" + trimmed;
+            // prefix match, longest first
+            const prefixes = Object.keys(ENGINES)
+              .filter((p) => p)
+              .sort((a, b) => b.length - a.length);
+            for (const p of prefixes) {
+              if (trimmed.startsWith(p + " ")) {
+                return ENGINES[p].url(trimmed.slice(p.length + 1));
+              }
+            }
+            return ENGINES[""].url(trimmed);
+          }
+
+          function updateEngineLabel() {
+            const trimmed = q.value.trim();
+            const prefixes = Object.keys(ENGINES)
+              .filter((p) => p)
+              .sort((a, b) => b.length - a.length);
+            let active = ENGINES[""];
+            for (const p of prefixes) {
+              if (trimmed.startsWith(p + " ")) {
+                active = ENGINES[p];
+                break;
+              }
+            }
+            engname.textContent = active.name;
+          }
+
+          q.addEventListener("input", updateEngineLabel);
+
+          q.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") {
+              const url = parseInput(q.value);
+              if (url) go(url);
+            } else if (e.key === "Escape") {
+              e.stopPropagation();
+              q.value = "";
+              updateEngineLabel();
+              q.blur();
+            } else if (e.key === "ArrowDown" && q.value === "") {
+              e.preventDefault();
+              sel = 0;
+              q.blur();
+              renderMarks();
+            }
+          });
+
+          document.addEventListener("keydown", (e) => {
+            if (document.activeElement === q) {
+              // still let direct mark-letter shortcuts work only when input is empty
+              return;
+            }
+            if (e.key === "/" || e.key === "i") {
+              e.preventDefault();
+              sel = -1;
+              renderMarks();
+              q.focus();
+              return;
+            }
+            if (e.key === "j") {
+              sel = Math.min(sel + 1, MARKS.length - 1);
+              renderMarks();
+              return;
+            }
+            if (e.key === "k") {
+              sel = Math.max(sel - 1, 0);
+              renderMarks();
+              return;
+            }
+            if (e.key === "Enter" && sel >= 0) {
+              go(MARKS[sel].url);
+              return;
+            }
+            const mark = MARKS.find((m) => m.k === e.key);
+            if (mark) {
+              go(mark.url);
+              return;
+            }
+          });
+
+          // clock
+          function tick() {
+            const d = new Date();
+            const p = (n) => String(n).padStart(2, "0");
+            document.getElementById("clock").textContent =
+              `${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+          }
+          tick();
+          setInterval(tick, 1000);
+
+          renderMarks();
+        })();
+      }
+    </script>
+  </body>
+</html>

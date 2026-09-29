@@ -1,0 +1,121 @@
+@import "/home/purpleafk/.cache/wal/colors-waybar.css"; /* This line connects to Pywal */
+
+* {
+  border: none;
+  border-radius: 0;
+  min-height: 0;
+  font-family: "JetBrainsMono Nerd Font Propo";
+  font-weight: bold;
+  font-size: 15px;
+  padding: 0;
+}
+
+window#waybar {
+  background: black;
+  border: 2px solid @color1;
+}
+
+#clock {
+  margin: 8px 0px 8px 8px;
+  padding: 2px 8px 2px 8px;
+  color: @background;
+  background-color: @color4;
+  border: 2px solid @color1;
+}
+
+#network {
+  margin: 8px 8px 8px 0px;
+  padding: 2px 2px 2px 2px;
+  color: @background;
+  background-color: @color4;
+  border: 2px solid @color1;
+}
+#custom-cava_mviz {
+  color: @foreground;
+}
+#backlight {
+  margin: 8px 8px 8px 0px;
+  padding: 2px 8px 2px 8px;
+  color: @background;
+  background-color: @color4;
+  border: 2px solid @color1;
+}
+#memory {
+  margin: 8px 8px 8px 0px;
+  padding: 2px 8px 2px 8px;
+  color: @background;
+  background-color: @color4;
+  border: 2px solid @color1;
+}
+#tray,
+#battery {
+  margin: 8px 8px 8px 0px;
+  padding: 2px 8px 2px 8px;
+  color: @background;
+  background-color: @color4;
+  border: 2px solid @color1;
+}
+
+#custom-playerctl {
+  padding: 0 10px;
+}
+
+/* Style for when music is playing */
+#custom-playerctl.Playing {
+  color: @foreground;
+}
+
+/* Style for when music is paused */
+#custom-playerctl.Paused {
+  color: @color2;
+}
+
+#workspaces {
+  margin: 1px;
+  padding: 0 10px;
+}
+
+#workspaces button {
+  /* all: initial; */
+  margin: 8px 0px 8px 8px;
+  padding: 2px 8px 2px 8px;
+  border: 2px solid @color1;
+  background-color: @color4;
+  color: @background;
+}
+#workspaces button.active {
+  background-color: @color1;
+  color: @background;
+  border: 2px solid @color4;
+}
+#workspaces button.active #icon {
+  color: @background; /* Make sure the "●" (or whatever icon) is dark */
+}
+#workspaces button:hover {
+  background-color: @color5;
+  border: 2px solid @color1;
+}
+#workspaces button.urgent,
+#battery.warning,
+#battery.critical,
+#battery.urgent,
+#custom-power {
+  margin: 8px 8px 8px 0px;
+  padding: 2px 8px 2px 8px;
+  color: @background;
+  background-color: @color4;
+  border: 2px solid @color1;
+}
+
+#custom-power:hover {
+}
+#tray,
+#bluetooth,
+#battery,
+#pulseaudio {
+  margin: 8px 8px 8px 0px;
+  padding: 2px 8px 2px 8px;
+  color: @background;
+  background-color: @color4;
+  border: 2px solid @color1;
+}

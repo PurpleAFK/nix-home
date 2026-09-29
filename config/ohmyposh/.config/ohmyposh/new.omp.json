@@ -1,0 +1,106 @@
+{
+  "$schema": "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/schema.json",
+  "palette": {
+    "pywal_background": "{{ .Colors.Background }}",
+    "pywal_foreground": "{{ .Colors.Foreground }}",
+    "pywal_black": "{{ .Colors.Ansi.Color0 }}",
+    "pywal_red": "{{ .Colors.Ansi.Color1 }}",
+    "pywal_green": "{{ .Colors.Ansi.Color2 }}",
+    "pywal_yellow": "{{ .Colors.Ansi.Color3 }}",
+    "pywal_blue": "{{ .Colors.Ansi.Color4 }}",
+    "pywal_magenta": "{{ .Colors.Ansi.Color5 }}",
+    "pywal_cyan": "{{ .Colors.Ansi.Color6 }}",
+    "pywal_white": "{{ .Colors.Ansi.Color7 }}",
+    "pywal_brightblack": "{{ .Colors.Ansi.Color8 }}",
+    "pywal_brightred": "{{ .Colors.Ansi.Color9 }}",
+    "pywal_brightgreen": "{{ .Colors.Ansi.Color10 }}",
+    "pywal_brightyellow": "{{ .Colors.Ansi.Color11 }}",
+    "pywal_brightblue": "{{ .Colors.Ansi.Color12 }}",
+    "pywal_brightmagenta": "{{ .Colors.Ansi.Color13 }}",
+    "pywal_brightcyan": "{{ .Colors.Ansi.Color14 }}",
+    "pywal_brightwhite": "{{ .Colors.Ansi.Color15 }}"
+  },
+  "blocks": [
+    {
+      "alignment": "left",
+      "segments": [
+        {
+          "foreground": "p:pywal_red",
+          "style": "plain",
+          "template": "{{ .UserName }} ",
+          "type": "session"
+        },
+        {
+          "foreground": "p:pywal_blue",
+          "properties": {
+            "style": "full"
+          },
+          "style": "plain",
+          "template": "{{ .Path }} ",
+          "type": "path"
+        }
+      ],
+      "type": "prompt"
+    },
+    {
+      "alignment": "left",
+      "segments": [
+        {
+          "foreground": "p:pywal_foreground",
+          "properties": {
+            "branch_ahead_icon": "<p:pywal_cyan>\u21e1 </>",
+            "branch_behind_icon": "<p:pywal_cyan>\u21e3 </>",
+            "branch_icon": "",
+            "fetch_stash_count": true,
+            "fetch_status": true,
+            "fetch_upstream_icon": true,
+            "github_icon": ""
+          },
+          "style": "plain",
+          "template": "{{ .UpstreamIcon }} {{ .HEAD }}{{if .BranchStatus }} {{ .BranchStatus }}{{ end }}{{ if .Working.Changed }}<p:pywal_magenta>*</>{{ .Working.String }}{{ end }}{{ if and (.Working.Changed) (.Staging.Changed) }} |{{ end }}{{ if .Staging.Changed }} \uf046 {{ .Staging.String }}{{ end }}{{ if gt .StashCount 0 }} \ueb4b {{ .StashCount }}{{ end }} ",
+          "type": "git"
+        }
+      ],
+      "type": "prompt"
+    },
+    {
+      "alignment": "left",
+      "segments": [
+        {
+          "foreground": "p:pywal_green",
+          "properties": {
+            "style": "austin"
+          },
+          "style": "plain",
+          "template": " {{ .FormattedMs }} ",
+          "type": "executiontime"
+        }
+      ],
+      "type": "prompt"
+    },
+    {
+      "alignment": "left",
+      "newline": true,
+      "segments": [
+        {
+          "foreground": "p:pywal_magenta",
+          "foreground_templates": ["{{ if gt .Code 0 }}p:pywal_red{{ end }}"],
+          "properties": {
+            "always_enabled": true
+          },
+          "style": "plain",
+          "template": "\u276f ",
+          "type": "status"
+        }
+      ],
+      "type": "prompt"
+    }
+  ],
+  "console_title_template": "{{if .Root}}(Admin){{end}} {{.PWD}}",
+  "transient_prompt": {
+    "foreground": "p:pywal_magenta",
+    "foreground_templates": ["{{ if gt .Code 0 }}p:pywal_red{{ end }}"],
+    "template": "\u276f "
+  },
+  "version": 3
+}

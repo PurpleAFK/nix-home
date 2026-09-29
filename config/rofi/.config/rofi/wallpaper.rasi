@@ -1,0 +1,130 @@
+/**
+ * Wallpaper picker — thumbnail grid, pywal colours.
+ * Used by ~/.config/hypr/scripts/wal-set.sh
+ *
+ * Tuning: `listview { columns; lines; }` and `element-icon { size; }` are the
+ * knobs. Sized for 1920x1080: 5 columns of 220px thumbnails in a 70%-wide
+ * window, 3 rows visible, scroll for the rest.
+ */
+
+@import "~/.cache/wal/colors-rofi-dark.rasi"
+
+configuration {
+    show-icons:                 true;
+    font:                       "JetBrainsMono Nerd Font 11";
+}
+
+window {
+    width:                      70%;
+    border:                     2px;
+    border-color:               @selected-normal-background;
+    border-radius:              0px;
+    padding:                    0px;
+    background-color:           @background;
+    cursor:                     "default";
+}
+
+mainbox {
+    spacing:                    0px;
+    padding:                    0px;
+    background-color:           transparent;
+    children:                   [ "inputbar", "listview", "message" ];
+}
+
+inputbar {
+    spacing:                    10px;
+    padding:                    15px;
+    background-color:           transparent;
+    text-color:                 @foreground;
+    children:                   [ "prompt", "entry" ];
+}
+
+prompt {
+    background-color:           transparent;
+    text-color:                 @foreground;
+}
+
+entry {
+    background-color:           transparent;
+    text-color:                 inherit;
+    cursor:                     text;
+    placeholder:                "Filter...";
+    placeholder-color:          inherit;
+}
+
+listview {
+    columns:                    5;
+    lines:                      3;
+    flow:                       horizontal;
+    layout:                     vertical;
+    cycle:                      true;
+    dynamic:                    false;
+    scrollbar:                  false;
+    fixed-height:               true;
+    fixed-columns:              true;
+    spacing:                    10px;
+    padding:                    10px;
+    border:                     0px;
+    background-color:           transparent;
+    cursor:                     "default";
+}
+
+element {
+    orientation:                vertical;
+    spacing:                    6px;
+    padding:                    8px;
+    border:                     2px;
+    border-radius:              0px;
+    border-color:               transparent;
+    background-color:           transparent;
+    text-color:                 @foreground;
+    cursor:                     pointer;
+}
+
+/* highlighted */
+element selected.normal {
+    border-color:               @foreground;
+    background-color:           transparent;
+    text-color:                 @foreground;
+}
+
+/* current wallpaper (rofi -a <row>) */
+element normal.active {
+    border-color:               @selected-normal-background;
+    background-color:           transparent;
+    text-color:                 @foreground;
+}
+
+/* current wallpaper and highlighted */
+element selected.active {
+    border-color:               @foreground;
+    background-color:           @selected-normal-background;
+    text-color:                 @foreground;
+}
+
+element-icon {
+    size:                       220px;
+    background-color:           transparent;
+    cursor:                     inherit;
+}
+
+element-text {
+    background-color:           transparent;
+    text-color:                 inherit;
+    horizontal-align:           0.5;
+    vertical-align:             0.5;
+    cursor:                     inherit;
+}
+
+/* status line from -mesg */
+message {
+    padding:                    10px 15px;
+    background-color:           transparent;
+    text-color:                 @foreground;
+}
+
+textbox {
+    background-color:           transparent;
+    text-color:                 inherit;
+    horizontal-align:           0.5;
+}

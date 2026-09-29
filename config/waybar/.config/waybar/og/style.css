@@ -1,0 +1,151 @@
+/* @import "$HOME/.config/colors/colors.css" */
+@import "/home/purpleafk/.cache/wal/colors-waybar.css"; /* This line connects to Pywal */
+
+* {
+  font-family: "JetBrainsMono Nerd Font Propo", "Noto Sans CJK JP";
+  font-size: 15px;
+  font-weight: bold;
+  background-color: transparent;
+  border-radius: 5px;
+  min-height: 0;
+}
+
+window,
+tooltip {
+  background-color: @color1;
+}
+
+window#waybar {
+  /* background-color: rgba(43, 48, 59, 0.8);  */
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  font-family: "JetBrainsMono Nerd Font", sans-serif;
+  padding: 1px;
+  font-size: 14px;
+  color: #eceff4;
+}
+
+#battery,
+#cpu,
+#memory,
+#pulseaudio,
+#network {
+  color: @color2;
+  background-color: @background;
+  border-radius: 8px; /* Slightly rounded corners for modules */
+  margin-left: 15px;
+  margin: 5px;
+  padding: 2px 8px; /* Padding inside modules */
+}
+
+/* Add any other module-specific styles you have */
+
+#waybar {
+  background: alpha(@background, 0.6);
+  border-radius: 0;
+}
+
+#workspaces {
+  margin: 1px;
+  padding: 0 10px;
+}
+
+#workspaces button {
+  border: none; /* Remove border */
+  border-radius: 8px;
+  background-color: @background; /* Make background transparent */
+  color: @foreground;
+  margin: 3px;
+  padding: 0 10px;
+}
+
+#workspaces button.focused {
+  border-radius: 0px;
+  border: none; /* No border for focused */
+  background-color: @background; /* No background for focused */
+  color: @foreground; /* Example: change color of focused dot/number */
+}
+
+#workspaces button.urgent {
+  border: none; /* No border for urgent */
+  background-color: @background; /* No background for urgent */
+  color: @foreground; /* Example: make urgent "!" red */
+}
+
+#custom-power {
+  color: @color2;
+  background-color: @background;
+  margin: 5px;
+  padding: 0 13 0 10px;
+}
+
+#custom-power:hover {
+}
+#tray,
+#bluetooth,
+#battery,
+#pulseaudio {
+  margin: 5px;
+  padding: 0 10px;
+}
+
+#custom-power:hover,
+#bluetooth:hover,
+#network:hover,
+#battery:hover,
+#pulseaudio:hover,
+#bluetooth {
+  color: @yellow;
+}
+
+#battery {
+  color: @color3;
+}
+
+#pulseaudio {
+  color: @color4;
+}
+
+#backlight {
+  color: @color3;
+  background-color: @background;
+  margin: 5px;
+  padding: 0 10px;
+}
+
+#memory {
+  color: @color3;
+  margin: 5px;
+  padding: 0 10px;
+}
+
+#cpu {
+  color: @color3;
+  margin: -5px;
+}
+
+#clock {
+  font-size: 15;
+  padding: 0 10px;
+  margin: 5px;
+  color: @foreground;
+  background-color: @background;
+}
+
+#custom-cava_mviz {
+  color: @foreground;
+}
+
+#custom-playerctl {
+  padding: 0 10px;
+}
+
+/* Style for when music is playing */
+#custom-playerctl.Playing {
+  color: @foreground;
+}
+
+/* Style for when music is paused */
+#custom-playerctl.Paused {
+  color: @color2;
+}

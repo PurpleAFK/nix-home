@@ -1,0 +1,206 @@
+#!/usr/bin/env bash
+# vcommit — manual vault commit with auto-summary + push
+#
+# Usage:
+#   vcommit                 interactive (prompt for message)
+#   vcommit -m "msg"        non-interactive
+#   vcommit --amend         amend previous commit (warns if already pushed)
+#   vcommit -n | --no-push  commit locally, skip push
+#   vcommit -d | --dry-run  show what would happen, no changes
+#   vcommit -f | --force    skip prompts; force-with-lease push on --amend
+#   vcommit -h | --help     this help
+#
+# Auto-message format:
+#   vault: +2 concept (relu, softmax), +1 paper (vaswani2017a), ~1 daily
+
+set -euo pipefail
+
+VAULT="$HOME/convergence"
+cd "$VAULT" 2>/dev/null || { echo "vcommit: $VAULT missing" >&2; exit 1; }
+
+# ─── colors ──────────────────────────────────────────────
+if [ -t 1 ]; then
+  B=$'\033[1m'; D=$'\033[2m'; G=$'\033[32m'; Y=$'\033[33m'; R=$'\033[31m'; N=$'\033[0m'
+else
+  B=""; D=""; G=""; Y=""; R=""; N=""
+fi
+
+# ─── args ────────────────────────────────────────────────
+MSG=""; AMEND=0; NO_PUSH=0; DRY=0; FORCE=0
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -m|--message) MSG="${2:?message required}"; shift 2 ;;
+    --amend)      AMEND=1; shift ;;
+    -n|--no-push) NO_PUSH=1; shift ;;
+    -d|--dry-run) DRY=1; shift ;;
+    -f|--force)   FORCE=1; shift ;;
+    -h|--help)    sed -n '3,17p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    *) echo "vcommit: unknown option: $1" >&2; exit 2 ;;
+  esac
+done
+
+# ─── preconditions ───────────────────────────────────────
+git rev-parse --git-dir >/dev/null 2>&1 || { echo "vcommit: not a git repo"; exit 1; }
+
+if git ls-files --unmerged | grep -q .; then
+  echo "${R}vcommit: unresolved merge conflicts${N}" >&2
+  git status --short
+  exit 1
+fi
+
+# ─── categorize working-tree changes ────────────────────
+declare -A ADD MOD DEL ADD_SLUGS
+
+bucket_of() {
+  case "$1" in
+    daily/*)          echo "daily" ;;
+    concept/*)        echo "concept" ;;
+    paper/*)          echo "paper" ;;
+    project/*)        echo "project" ;;
+    cp/postmortems/*) echo "cp" ;;
+    cp/upsolve/*)     echo "cp-upsolve" ;;
+    latex/*)          echo "latex" ;;
+    blog/*)           echo "blog" ;;
+    refs/*)           echo "refs" ;;
+    interviews/*)     echo "interviews" ;;
+    _templates/*)     echo "templates" ;;
+    *)                echo "misc" ;;
+  esac
+}
+
+while IFS= read -r line; do
+  [ -z "$line" ] && continue
+  status="${line:0:2}"
+  path="${line:3}"
+  [[ "$status" == R* ]] && path="${path##* -> }"
+
+  b="$(bucket_of "$path")"
+  slug="$(basename "$path" .md)"
+
+  case "$status" in
+    "??") ADD[$b]=$((${ADD[$b]:-0}+1)); ADD_SLUGS[$b]="${ADD_SLUGS[$b]:-}${slug}," ;;
+    *A*)  ADD[$b]=$((${ADD[$b]:-0}+1)); ADD_SLUGS[$b]="${ADD_SLUGS[$b]:-}${slug}," ;;
+    *D*)  DEL[$b]=$((${DEL[$b]:-0}+1)) ;;
+    *)    MOD[$b]=$((${MOD[$b]:-0}+1)) ;;
+  esac
+done < <(git status --porcelain=v1)
+
+# NOTE: nounset is relaxed around these array reads. On some bash builds
+# (fixed upstream in 4.4, but still around in the wild), referencing the
+# length or keys of an associative array that was declared but never had
+# a single key assigned (e.g. DEL when nothing was deleted this commit)
+# is treated as an "unbound variable" under `set -u`, even though the
+# array itself exists. Since ADD/MOD/DEL legitimately start out empty
+# on any given run, we can't rely on nounset to catch real typos here
+# anyway — so we scope it off for just these reads.
+set +u
+TOTAL=$(( ${#ADD[@]} + ${#MOD[@]} + ${#DEL[@]} ))
+set -u
+if [ "$TOTAL" -eq 0 ] && [ "$AMEND" -eq 0 ]; then
+  echo "${D}nothing to commit${N}"; exit 0
+fi
+
+# ─── compose auto-message ────────────────────────────────
+compose() {
+  local sign="$1" b="$2" n="$3" slugs="${4:-}"
+  if [ "$n" -eq 1 ] && [ -n "$slugs" ]; then
+    printf '%s%d %s (%s)' "$sign" "$n" "$b" "${slugs%,*}"
+  else
+    printf '%s%d %s' "$sign" "$n" "$b"
+  fi
+}
+
+parts=()
+set +u
+for b in $(printf '%s\n' "${!ADD[@]}" | sort); do
+  parts+=("$(compose "+" "$b" "${ADD[$b]}" "${ADD_SLUGS[$b]:-}")")
+done
+for b in $(printf '%s\n' "${!MOD[@]}" | sort); do
+  parts+=("$(compose "~" "$b" "${MOD[$b]}" "")")
+done
+for b in $(printf '%s\n' "${!DEL[@]}" | sort); do
+  parts+=("$(compose "-" "$b" "${DEL[$b]}" "")")
+done
+set -u
+
+AUTO_MSG="vault: $(IFS=', '; echo "${parts[*]}")"
+
+# Anki cards being added (rough: `+START` lines in worktree diff of tracked files)
+ANKI=$( { git diff; git diff --cached; } 2>/dev/null | grep -c '^+START$' || true)
+# Untracked files can hold cards too
+while IFS= read -r f; do
+  [[ "$f" == *.md ]] || continue
+  [ -f "$f" ] || continue
+  n=$(grep -c '^START$' "$f" 2>/dev/null) || n=0
+  ANKI=$(( ANKI + n ))
+done < <(git ls-files --others --exclude-standard)
+
+# ─── summary ─────────────────────────────────────────────
+echo "${B}── changes ─${N}"
+git status --short | sed 's/^/  /'
+echo
+echo "${B}── diff stat ─${N}"
+# Temporarily mark untracked files intent-to-add so they show in the stat
+mapfile -t _UNTRACKED < <(git ls-files --others --exclude-standard)
+if [ "${#_UNTRACKED[@]}" -gt 0 ]; then
+  git add -N -- "${_UNTRACKED[@]}" 2>/dev/null || true
+fi
+trap 'if [ "${#_UNTRACKED[@]}" -gt 0 ]; then git reset -q -- "${_UNTRACKED[@]}" 2>/dev/null || true; fi' EXIT
+
+git diff --stat HEAD 2>/dev/null | tail -20 | sed 's/^/  /'
+[ "$ANKI" -gt 0 ] && echo "  ${G}anki cards: +$ANKI${N}"
+echo
+
+# Warn if amending a pushed commit
+if [ "$AMEND" -eq 1 ] && git branch -r --contains HEAD 2>/dev/null | grep -q .; then
+  echo "${Y}warning: HEAD already on remote — amend will require --force${N}"
+fi
+
+if [ "$DRY" -eq 1 ]; then echo "${D}(dry-run)${N}"; exit 0; fi
+
+# ─── message prompt ──────────────────────────────────────
+if [ -z "$MSG" ] && [ "$FORCE" -eq 0 ]; then
+  echo
+  read -rp "message [Enter=auto, e=edit, ^C=abort]: " REPLY
+  case "$REPLY" in
+    "")  MSG="$AUTO_MSG" ;;
+    e|E) tmp="$(mktemp --suffix=.msg)"
+         { echo "$AUTO_MSG"; echo; echo "# Lines starting with # are ignored."; } > "$tmp"
+         "${EDITOR:-nvim}" "$tmp"
+         MSG="$(grep -v '^#' "$tmp" | sed '/^[[:space:]]*$/d' | head -n 1)"
+         rm -f "$tmp" ;;
+    *)   MSG="$REPLY" ;;
+  esac
+elif [ -z "$MSG" ]; then
+  MSG="$AUTO_MSG"
+fi
+
+[ -z "${MSG// /}" ] && { echo "${R}empty message, aborting${N}"; exit 1; }
+
+# ─── commit ──────────────────────────────────────────────
+git add -A
+if [ "$AMEND" -eq 1 ]; then
+  git commit --amend -m "$MSG" >/dev/null
+else
+  git commit -m "$MSG" >/dev/null
+fi
+echo "${G}✓${N} $(git log -1 --oneline)"
+
+# ─── push ────────────────────────────────────────────────
+if [ "$NO_PUSH" -eq 1 ]; then
+  echo "${D}(local only)${N}"; exit 0
+fi
+
+if [ "$AMEND" -eq 1 ] && [ "$FORCE" -eq 1 ]; then
+  git push --force-with-lease origin HEAD
+elif [ "$AMEND" -eq 1 ]; then
+  echo "${Y}skipped push (amend without --force). Run: git push --force-with-lease${N}"
+  exit 0
+else
+  if git push origin HEAD 2>&1; then
+    echo "${G}✓ pushed${N}"
+  else
+    echo "${Y}push failed — commit is local. Retry: git push${N}"
+    exit 0
+  fi
+fi

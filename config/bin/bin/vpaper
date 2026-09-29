@@ -1,0 +1,112 @@
+#!/usr/bin/env bash
+# vpaper [-r|--refresh] <citekey>
+# Creates ~/vault/paper/<citekey>.md from _templates/paper.md with
+# frontmatter populated from ~/vault/refs/library.bib.
+#   -r  refresh frontmatter of an existing note (keeps body intact)
+set -euo pipefail
+
+VAULT="$HOME/convergence"
+BIB="$VAULT/refs/library.bib"
+TPL="$VAULT/_templates/paper.md"
+
+REFRESH=0
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -r|--refresh) REFRESH=1; shift ;;
+    -h|--help)    echo "usage: vpaper [-r] <citekey>"; exit 0 ;;
+    -*)           echo "vpaper: unknown flag $1" >&2; exit 2 ;;
+    *)            KEY="$1"; shift ;;
+  esac
+done
+: "${KEY:?usage: vpaper [-r] <citekey>}"
+
+FILE="$VAULT/paper/$KEY.md"
+[ -f "$BIB" ] || { echo "vpaper: $BIB missing (Zotero exporting?)" >&2; exit 1; }
+[ -f "$TPL" ] || { echo "vpaper: template $TPL missing" >&2; exit 1; }
+
+# ─── field extractor (brace-depth aware, paragraph-per-entry) ─
+get_field() {
+  awk -v RS='' -v key="$KEY" -v field="$1" '
+    $0 ~ "@[a-zA-Z]+\\{" key "," {
+      if (match($0, "(^|[[:space:],])" field "[[:space:]]*=[[:space:]]*\\{")) {
+        s = RSTART + RLENGTH; d = 1
+        for (i = s; i <= length($0) && d > 0; i++) {
+          c = substr($0, i, 1)
+          if      (c == "{") d++
+          else if (c == "}") { d--; if (d == 0) break }
+        }
+        print substr($0, s, i - s)
+      }
+    }
+  ' "$BIB"
+}
+clean() { tr -d '{}' | tr -s '[:space:]' ' ' | sed 's/^ //; s/ $//'; }
+
+if ! grep -q "^@[a-zA-Z]\+{$KEY," "$BIB"; then
+  echo "vpaper: warning — citekey '$KEY' not in $BIB" >&2
+  TITLE=""; AUTHORS=""; YEAR=""; VENUE=""; URL=""
+else
+  TITLE="$(get_field title | clean)"
+  AUTH_RAW="$(get_field author | clean)"
+
+  YEAR="$(get_field year | clean)"
+  [ -z "$YEAR" ] && YEAR="$(get_field date | clean | cut -c1-4)"
+
+  URL="$(get_field url | clean)"
+  if [ -z "$URL" ]; then
+    EP="$(get_field eprint | clean)"
+    ET="$(get_field eprinttype | clean)"
+    if [ -n "$EP" ]; then
+      case "$ET" in
+        arxiv|arXiv|"") URL="https://arxiv.org/abs/$EP" ;;
+        *)              URL="$EP" ;;
+      esac
+    fi
+    if [ -z "$URL" ]; then
+      DOI="$(get_field doi | clean)"
+      [ -n "$DOI" ] && URL="https://doi.org/$DOI"
+    fi
+  fi
+
+  VENUE="$(get_field journaltitle | clean)"
+  [ -z "$VENUE" ] && VENUE="$(get_field journal    | clean)"
+  [ -z "$VENUE" ] && VENUE="$(get_field booktitle  | clean)"
+  [ -z "$VENUE" ] && VENUE="$(get_field publisher  | clean)"
+  if [ -z "$VENUE" ]; then
+    ET="$(get_field eprinttype | clean)"
+    { [ "$ET" = "arxiv" ] || [ "$ET" = "arXiv" ]; } && VENUE="arXiv"
+  fi
+
+  # "Last, First and Last, First" → "First Last, First Last"
+  AUTHORS="$(printf '%s' "$AUTH_RAW" | awk -F ' and ' '{
+    for (i=1;i<=NF;i++){
+      n=$i
+      if (index(n,",")){ split(n,a,/, */); n=a[2] " " a[1] }
+      printf "%s%s", n, (i<NF?", ":"")
+    }}')"
+fi
+
+esc() { printf '%s' "$1" | sed 's/[|&\\]/\\&/g'; }
+
+apply_subs() {
+  local f="$1"
+  sed -i \
+    -e "s|{{title}}|$(esc "${TITLE:-$KEY}")|g" \
+    -e "s|^citekey:.*|citekey: $KEY|" \
+    -e "s|^year:.*|year: $(esc "$YEAR")|" \
+    -e "s|^venue:.*|venue: $(esc "$VENUE")|" \
+    -e "s|^authors:.*|authors: $(esc "$AUTHORS")|" \
+    -e "s|^url:.*|url: $(esc "$URL")|" \
+    -e "s|<% tp.date.now(\"YYYY-MM-DD\") %>|$(date +%F)|g" \
+    "$f"
+}
+
+if [ ! -f "$FILE" ]; then
+  mkdir -p "$(dirname "$FILE")"
+  cp "$TPL" "$FILE"
+  apply_subs "$FILE"
+elif [ "$REFRESH" -eq 1 ]; then
+  apply_subs "$FILE"
+fi
+
+exec nvim "$FILE"

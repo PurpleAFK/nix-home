@@ -1,0 +1,238 @@
+{
+    "layer": "top",
+    "position": "top",
+    "height": 36,     
+    "exclusive": true,     
+    "passthrough": false, 
+    "margin-top": 10,   // Margin from the top edge of the screen
+    "margin-bottom": -5, // Margin from the bottom edge
+    "margin-left": 15,  // Margin from the left edge
+    "margin-right": 15,
+
+
+    "modules-left": [
+        // "custom/launcher",
+        "clock",
+        "hyprland/workspaces"
+        // "hyprland/window",
+        // "custom/cava_mviz",
+    ],
+    "modules-center": [
+        "custom/playerctl"
+    ],
+    "modules-right": [
+        "tray",
+        "network",
+        "pulseaudio",
+        "battery",
+        "backlight",
+        "memory",
+        "custom/power"
+        // "cpu"
+        // "idle_inhibitor",
+    ],
+
+    // --- Module Configurations ---
+
+
+  "custom/playerctl": {
+    "format": "<span>{}</span>",
+    "return-type": "json",
+    "max-length": 50,
+    "exec": "playerctl -a metadata --format '{\"text\": \"{{artist}}  {{markup_escape(title)}}\", \"tooltip\": \"{{playerName}} : {{markup_escape(title)}}\", \"alt\": \"{{status}}\", \"class\": \"{{status}}\"}' -F",
+    "on-click-middle": "playerctl previous",
+    "on-click": "playerctl play-pause",
+    "on-click-right": "playerctl next",
+    "scroll-step": 5.0,
+    "on-scroll-up": "$HOME/.config/hypr/scripts/volume.sh --inc",
+    "on-scroll-down": "$HOME/.config/hypr/scripts/volume.sh --dec",
+    "smooth-scrolling-threshold": 1
+  },
+
+
+    "custom/launcher": {
+        "format": "󰣇 ",
+        "tooltip": false,
+        "on-click": "rofi --show drun" /* Or your preferred application launcher (rofi, alacritty, etc.) */
+    },
+
+    "hyprland/workspaces": {
+        // "format": "<span size='larger'>{icon}</span>",
+        // "on-click": "activate",
+        // "format-icons": {
+        //     "1": "一",
+        //     "2": "二",
+        //     "3": "三",
+        //     "4": "四",
+        //     "5": "五",
+        //     "default": "\uf4c3"
+        // },
+        // "icon-size": 10,
+        // "sort-by-number": true,
+        "persistent-workspaces": {
+            "1": "一",
+            "2": "二",
+            "3": "三",
+            "4": "四",
+            "5": "五"
+        },
+        "disable-scroll": true,
+        "all-outputs": true,
+        "warp-on-scroll": false,
+        "format": "{icon}",
+        "cursor": false,
+        "show-empty-workspaces": true,
+        "format-icons": {
+            "1": "一",
+            "2": "二",
+            "3": "三",
+            "4": "四",
+            "5": "五",
+            "6": "六",
+            "7": "七",
+            "8": "八",
+            "9": "九",
+            "10": "十",
+            // "1": "I",
+            // "2": "II",
+            // "3": "III",
+            // "4": "IV",
+            // "5": "V",
+            // "6": "VI",
+            // "7": "VII",
+            // "8": "VIII",
+            // "9": "IX",
+            // "10": "X",
+            "urgent": "!",
+            "focused": "●", // Optional: Keep the Japanese character for focused, or use "●"
+            "default": "●" 
+        }
+    },
+
+
+    "hyprland/window": {
+        "format": "{}",
+        "max-length": 80,
+        "separate-outputs": true 
+    },
+
+    "network": {
+        // "format-wifi": " {essid}",
+        "format-wifi": "  ",
+        "format-ethernet": " Ethernet",
+        "format-linked": " Linked",
+        "format-disconnected": " Disconnected",
+        "tooltip": false
+    },
+
+    "battery": {
+        "states": {
+            "good": 85,
+            "warning": 30,
+            "critical": 15
+        },
+        "format": "{icon} {capacity}%",
+        "format-full": "{icon} {capacity}%",
+        "format-plugged": " {capacity}%",
+        "format-charging": " {capacity}%", 
+        "format-alt": "{icon} {time}",
+        "format-icons": ["", "", "", "", ""],
+        "tooltip-format": "{time}",
+        "cursor": false
+    },
+
+    "backlight": {
+        "format": " {percent}%",
+        "format-icons": [""],
+        "tooltip": false
+    },
+
+    "language": {
+        // This is a native Waybar module for keyboard layout.
+        // If you're using it as a "custom" module, you'd need a script.
+        // Assuming it's the native Sway/Hyprland language module.
+        "format": "{short}",
+        "tooltip": true,
+        "hide-single-layout": false // Set to true if you only have one layout and want to hide it
+    },
+
+    "pulseaudio": {
+        "format": " {volume}%",
+        "format-muted": " Muted",
+        "format-bluetooth": " {volume}%",
+        "format-bluetooth-muted": "  Muted",
+        "format-icons": {
+            "headphone": " headphones",
+            "headset": " headsets",
+            "default": [""]
+        },
+        "on-click": "pactl set-sink-mute @DEFAULT_SINK@ toggle",
+        "on-scroll-up": "pactl set-sink-volume @DEFAULT_SINK@ +5%",
+        "on-scroll-down": "pactl set-sink-volume @DEFAULT_SINK@ -5%"
+
+    },
+
+    "clock": {
+        // "format": " {:%I:%M %p}"
+        "format": " {:%d.%m.%Y | %H:%M}"
+    },
+
+    "disk": {
+        "format": " {percentage_free}% ({free})",
+        "path": "/", // Mount point to monitor
+        "interval": 30,
+        "tooltip": true
+    },
+
+    "privacy": {
+        // This is a native Waybar module for privacy indicators (screenshare, audio-in/out)
+        "icon-size": 18,
+        "tooltip": true,
+        "modules": [
+            {"type": "screenshare", "tooltip": true},
+            {"type": "audio-in", "tooltip": true},
+            {"type": "audio-out", "tooltip": true}
+        ]
+    },
+
+    "idle_inhibitor": {
+        "format": " ",
+        "format-activated": " ",
+        "tooltip": true
+    },
+
+    "memory": {
+        "format": " {percentage}%",
+        "tooltip": true
+    },
+
+    "cpu": {
+        "format": "  {usage}%",
+        "tooltip": true
+    },
+
+    // "custom/cava": {
+    //     // Cava is a visualizer. This usually requires a script or a specific Waybar build.
+    //     // Assuming it's a `custom` module running a script.
+    //     "format": "龍 {text}",
+    //     "interval": 1, // High interval for visualizer
+    //     "exec": "~/.config/waybar/scripts/cava.sh"
+    // },
+
+    "custom/cava_mviz": {
+	    "exec": "$HOME/.config/hypr/scripts/waybarcava.sh",
+	    "format": "{}"
+    },
+
+    "tray": {
+        "icon-size": 18,
+        "spacing": 10
+    },
+
+    "custom/power": {
+        "format": "", 
+        "tooltip": false,
+        "on-click": "$HOME/.config/waybar/scripts/power_menu.sh" /* Command to open your wlogout menu */
+    } 
+
+}

@@ -1,0 +1,29 @@
+default partial alphanumeric_keys
+xkb_symbols "basic" {
+    name[Group1] = "Minecraft";
+ 
+    key <TLDE> { [ aring, aring ] }; // ~ >  å
+    key <AE01> { [ 8, 8 ] }; // 1 > 8
+    key <AE02> { [ l, l] }; // 2 > l
+    key <AE03> { [ i, i ] }; // 3 > i
+    key <AE04> { [ h, h ] }; // 4 > h
+    key <AE05> { [ b, b ] }; // 5 > b
+
+    key <AD01> { [ 4, 4 ] }; // q > 4
+    key <AD02> { [ s, s ] }; // w > l
+    key <AD03> { [ e, e ] }; // e > e
+    key <AD04> { [ r, r ] }; // r > r
+    key <AD05> { [ Ooblique, Ooblique ] }; // t > ø
+
+    key <AC01> { [ u, u ] }; // a > u
+    key <AC02> { [ s, s ] }; // s > l
+    key <AC03> { [ p, p ] }; // d > i
+    key <AC04> { [ a, a ] }; // f > a
+
+    key <AB01> { [ 4, 4 ] }; // z > 4
+    key <AB02> { [ x, x ] }; // x > x
+    key <AB03> { [ n, n ] }; // c > n
+    // key <AB04> { [ Armenian_za, Armenian_ZA ] }; // v > զ
+
+    //key <LALT> { [ Enter, Enter ] }; // alt > n
+};

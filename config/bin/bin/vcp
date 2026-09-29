@@ -1,0 +1,134 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+VAULT="$HOME/convergence"
+CACHE_DIR="$VAULT/cp/.cache"
+CACHE_FILE="$CACHE_DIR/problemset.json"
+CACHE_MAX_AGE=86400  # 1 day, in seconds
+
+UPSOLVE=false
+ARGS=()
+for a in "$@"; do
+  if [ "$a" = "--upsolve" ]; then
+    UPSOLVE=true
+  else
+    ARGS+=("$a")
+  fi
+done
+set -- "${ARGS[@]}"
+
+ARG="${1:?usage: vcp <problem-id, e.g. 1852A or 1852F1> [--upsolve] [optional custom title]}"
+shift || true
+CUSTOM_TITLE="${*:-}"
+
+SUBDIR="postmortems"
+$UPSOLVE && SUBDIR="upsolve"
+
+# --- split "1852A" / "1852 A" / "1852F1" into contestId + index ---
+ID_COMPACT="$(echo "$ARG" | tr -d '[:space:]')"
+CONTEST_ID="$(echo "$ID_COMPACT" | grep -oE '^[0-9]+')"
+INDEX="$(echo "$ID_COMPACT" | grep -oE '[A-Za-z][A-Za-z0-9]*$')"
+
+if [ -z "$CONTEST_ID" ] || [ -z "$INDEX" ]; then
+  echo "Couldn't parse a contest id + index out of '$ARG' (expected something like 1852A)" >&2
+  exit 1
+fi
+
+# --- refresh the CF problemset cache if missing/stale ---
+mkdir -p "$CACHE_DIR"
+if [ ! -f "$CACHE_FILE" ] || [ $(( $(date +%s) - $(date -r "$CACHE_FILE" +%s) )) -gt "$CACHE_MAX_AGE" ]; then
+  if ! curl -fsSL "https://codeforces.com/api/problemset.problems" -o "$CACHE_FILE.tmp"; then
+    echo "Warning: couldn't reach Codeforces API, will use stale/empty cache" >&2
+  else
+    mv "$CACHE_FILE.tmp" "$CACHE_FILE"
+  fi
+fi
+
+# --- look up the specific problem in the cached problemset ---
+INFO="$(jq -c --arg cid "$CONTEST_ID" --arg idx "$INDEX" '
+  if .status != "OK" then {} else
+    (.result.problems[] | select((.contestId|tostring)==$cid and .index==$idx))
+  end
+' "$CACHE_FILE" 2>/dev/null || echo '{}')"
+
+NAME="$(echo "$INFO" | jq -r '.name // empty')"
+RATING="$(echo "$INFO" | jq -r '.rating // empty')"
+TAGS="$(echo "$INFO" | jq -r '(.tags // []) | join(", ")')"
+
+[ -z "$RATING" ] && RATING="unrated"
+[ -z "$TAGS" ] && TAGS="none"
+[ -z "$NAME" ] && NAME="$ID_COMPACT"
+
+TITLE="${CUSTOM_TITLE:-$INDEX. $NAME}"
+PROBLEM_ID="${CONTEST_ID}${INDEX}"
+
+# tags_cf as a YAML flow list, e.g. [implementation, math]
+if [ "$TAGS" = "none" ]; then
+  TAGS_YAML="[]"
+else
+  TAGS_YAML="[$(echo "$TAGS" | sed 's/, /, /g')]"
+fi
+
+SLUG="$(echo "$TITLE" | tr '[:upper:]' '[:lower:]' | tr -c '[:alnum:]' '-' | sed -E 's/-+/-/g; s/^-|-$//g')"
+FILE="$VAULT/cp/$SUBDIR/$(date +%F)-$SLUG.md"
+mkdir -p "$(dirname "$FILE")"
+
+if [ ! -f "$FILE" ]; then
+  cp "$VAULT/_templates/cp-problem.md" "$FILE"
+  sed -i \
+    -e "s|{{title}}|$TITLE|g" \
+    -e "s|^created:.*|created: $(date +%F)|" \
+    -e "s|^platform:.*|platform: codeforces|" \
+    -e "s|^problem_id:.*|problem_id: $PROBLEM_ID|" \
+    -e "s|^rating:.*|rating: $RATING|" \
+    -e "s|^tags_cf:.*|tags_cf: $TAGS_YAML|" \
+    "$FILE"
+fi
+
+exec nvim "$FILE"
+    mv "$CACHE_FILE.tmp" "$CACHE_FILE"
+  fi
+fi
+
+# --- look up the specific problem in the cached problemset ---
+INFO="$(jq -c --arg cid "$CONTEST_ID" --arg idx "$INDEX" '
+  if .status != "OK" then {} else
+    (.result.problems[] | select((.contestId|tostring)==$cid and .index==$idx))
+  end
+' "$CACHE_FILE" 2>/dev/null || echo '{}')"
+
+NAME="$(echo "$INFO" | jq -r '.name // empty')"
+RATING="$(echo "$INFO" | jq -r '.rating // empty')"
+TAGS="$(echo "$INFO" | jq -r '(.tags // []) | join(", ")')"
+
+[ -z "$RATING" ] && RATING="unrated"
+[ -z "$TAGS" ] && TAGS="none"
+[ -z "$NAME" ] && NAME="$ID_COMPACT"
+
+TITLE="${CUSTOM_TITLE:-$INDEX. $NAME}"
+PROBLEM_ID="${CONTEST_ID}${INDEX}"
+
+# tags_cf as a YAML flow list, e.g. [implementation, math]
+if [ "$TAGS" = "none" ]; then
+  TAGS_YAML="[]"
+else
+  TAGS_YAML="[$(echo "$TAGS" | sed 's/, /, /g')]"
+fi
+
+SLUG="$(echo "$TITLE" | tr '[:upper:]' '[:lower:]' | tr -c '[:alnum:]' '-' | sed -E 's/-+/-/g; s/^-|-$//g')"
+FILE="$VAULT/cp/postmortems/$(date +%F)-$SLUG.md"
+mkdir -p "$(dirname "$FILE")"
+
+if [ ! -f "$FILE" ]; then
+  cp "$VAULT/_templates/cp-problem.md" "$FILE"
+  sed -i \
+    -e "s|{{title}}|$TITLE|g" \
+    -e "s|^created:.*|created: $(date +%F)|" \
+    -e "s|^platform:.*|platform: codeforces|" \
+    -e "s|^problem_id:.*|problem_id: $PROBLEM_ID|" \
+    -e "s|^rating:.*|rating: $RATING|" \
+    -e "s|^tags_cf:.*|tags_cf: $TAGS_YAML|" \
+    "$FILE"
+fi
+
+exec nvim "$FILE"

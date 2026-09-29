@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+set -euo pipefail
+BIB="$HOME/convergence/refs/library.bib"
+[ -f "$BIB" ] || { echo "no library.bib" >&2; exit 1; }
+
+# Extract: citekey \t title
+KEY=$(awk '
+  /^@[a-zA-Z]+\s*\{/ {
+    match($0, /\{[^,]+/); key = substr($0, RSTART+1, RLENGTH-1); title=""; next
+  }
+  /^\s*title\s*=/ {
+    line=$0; sub(/^[^{]*\{/, "", line); sub(/\},?\s*$/, "", line); title=line
+    if (key != "") { printf "%s\t%s\n", key, title; key="" }
+  }
+' "$BIB" | fzf --with-nth=2 --delimiter='\t' --preview 'echo {1}' | cut -f1)
+
+[ -z "$KEY" ] && exit 0
+printf "$KEY" | wl-copy
+echo "Copied: [@$KEY]"

@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+set -euo pipefail
+"${EDITOR:-nvim}" "$HOME/vault/daily/$(date +%F).md"     # fill EOD section
+~/bin/anki-sync                                          # sync cards
+sleep 2                                                  # let ID markers write back
+vcommit                                                  # commit + push
