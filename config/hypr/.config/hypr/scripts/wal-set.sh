@@ -11,7 +11,7 @@ fi
 
 # Filenames relative to WALLPAPER_DIR, version-sorted.
 mapfile -t files < <(
-    find "$WALLPAPER_DIR" -type f \
+    find -L "$WALLPAPER_DIR" -type f \
         \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.gif' -o -iname '*.webp' \) \
         -printf '%P\n' | sort -V
 )

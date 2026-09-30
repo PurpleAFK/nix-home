@@ -46,7 +46,7 @@ die() { log "ERROR: $*"; exit 1; }
 
 # NUL-separated, version-sorted list of image files.
 list_wallpapers() {
-    find "$WALLPAPER_DIR" -type f \
+    find -L "$WALLPAPER_DIR" -type f \
         \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.gif' -o -iname '*.webp' \) \
         -print0 | sort -zV
 }
@@ -93,7 +93,7 @@ case "${1:-}" in
     set)
         IMAGE="${2:-}"
         [ -n "$IMAGE" ] && [ -f "$IMAGE" ] || die "set: not a file: '$IMAGE'"
-        IMAGE=$(realpath -- "$IMAGE")
+        IMAGE=$(realpath -s -- "$IMAGE")   # -s: keep the ~/.local/share path, not the /nix/store target
         ;;
     random)
         IMAGE=$(random_wallpaper)

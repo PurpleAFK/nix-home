@@ -24,7 +24,7 @@ mkdir -p "$THUMB_DIR"
 
 # --- collect wallpapers ----------------------------------------------------
 mapfile -d '' -t paths < <(
-    find "$WALLPAPER_DIR" -type f \
+    find -L "$WALLPAPER_DIR" -type f \
         \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.gif' -o -iname '*.webp' \) \
         -print0 | sort -zV
 )
