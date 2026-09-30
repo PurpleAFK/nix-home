@@ -6,6 +6,7 @@
     ./modules/files.nix
     ./modules/git.nix
     ./modules/services.nix
+    ./modules/tmux.nix
   ];
 
   home.username = "purpleafk";

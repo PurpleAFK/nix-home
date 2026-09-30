@@ -168,18 +168,18 @@ source <(fzf --zsh)
 
 
 # CODEFORCES_CP_SETUP
-export SCRIPT_DIR="/home/purpleafk/cf/scripts"
+export SCRIPT_DIR="/home/purpleafk/codeforces/scripts"
 [ -f "$SCRIPT_DIR/cp_aliases.sh" ] && source "$SCRIPT_DIR/cp_aliases.sh"
 
 
 # Competitive Programming Environment for contests
 # ~/cf and ~/cf-contests live outside nix-home; restore them from a backup
-[ -f "$HOME/cf-contests/scripts/shell.sh" ] && source "$HOME/cf-contests/scripts/shell.sh"
-alias cf_gen="$HOME/cf/contests/scripts/cf_gen"
-alias cf_sample_gen="$HOME/cf/contests/scripts/cf_sample_gen"
-alias runsamples="$HOME/cf/contests/scripts/runsamples"
-# export CONTEST_SCRIPTS_DIR="/home/purpleafk/contests/scripts"
-# source "$CONTEST_SCRIPTS_DIR/aliases"
+# [ -f "$HOME/cf-contests/scripts/shell.sh" ] && source "$HOME/cf-contests/scripts/shell.sh"
+alias cf_gen="$HOME/codeforces/contests/scripts/cf_gen"
+alias cf_sample_gen="$HOME/codeforces/contests/scripts/cf_sample_gen"
+alias runsamples="$HOME/codeforces/contests/scripts/runsamples"
+export CONTEST_SCRIPTS_DIR="/home/purpleafk/competitive-programming/scripts"
+source "$CONTEST_SCRIPTS_DIR/"
 
 # fnm (installed by nix)
 eval "$(fnm env --shell zsh)"
