@@ -70,7 +70,8 @@ last_wallpaper() {
 # Ensure awww-daemon is running and accepting connections.
 wait_for_awww() {
     command -v awww >/dev/null 2>&1 || die "awww is not installed"
-    if ! pgrep -x awww-daemon >/dev/null 2>&1; then
+    # -f: under Nix the process name is ".awww-daemon-wrapped" (truncated), so -x never matches.
+    if ! pgrep -f '(^|/)\.?awww-daemon(-wrapped)?( |$)' >/dev/null 2>&1; then
         log "awww-daemon not running; starting it"
         awww-daemon >/dev/null 2>&1 &
         disown

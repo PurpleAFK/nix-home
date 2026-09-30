@@ -44,7 +44,10 @@ if [ ! -f "$WAL_CACHE/colors.sh" ]; then
 fi
 
 have()    { command -v "$1" >/dev/null 2>&1; }
-running() { pgrep -x "$1"  >/dev/null 2>&1; }
+# Nix wraps binaries, so the process name is e.g. ".waybar-wrapped" and
+# `pgrep -x waybar` never matches. Match the executable in the command line.
+proc_pat() { printf '(^|/)\\.?%s(-wrapped)?( |$)' "$1"; }
+running()  { pgrep -f "$(proc_pat "$1")" >/dev/null 2>&1; }
 
 # Value of a `$name = value` line in the generated Hyprland colour file.
 hypr_var() { sed -n 's/^\$'"$1"'[[:space:]]*=[[:space:]]*//p' "$HYPR_COLORS" | head -n 1; }
@@ -66,7 +69,7 @@ fi
 
 # --- Waybar ---------------------------------------------------------------
 if [ "$RELOAD_WAYBAR" = 1 ] && running waybar; then
-    pkill -SIGUSR2 -x waybar
+    pkill -SIGUSR2 -f "$(proc_pat waybar)"
 fi
 
 # --- swaync ---------------------------------------------------------------

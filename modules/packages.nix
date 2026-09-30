@@ -31,6 +31,7 @@
 
     # theming
     pywal
+    imagemagick   # pywal's palette backend + rofi wallpaper-picker thumbnails
     wallust
     matugen
 
@@ -55,6 +56,9 @@
     fira-code
     font-awesome
     comfortaa
+
+    # cli
+    claude-code
   ] ++ lib.optionals installGui [
     kitty
     hyprlock
