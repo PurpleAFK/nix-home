@@ -55,6 +55,8 @@
 
     # wayland / hyprland helpers (hyprland itself: enable it in configuration.nix)
     waybar
+    socat           # calendar.sh listens to Hyprland focus events
+    yad             # clock calendar popup (waybar/scripts/calendar.sh)
     rofi
     swaynotificationcenter
     awww

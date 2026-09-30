@@ -44,8 +44,8 @@
     "on-click": "playerctl play-pause",
     "on-click-right": "playerctl next",
     "scroll-step": 5.0,
-    "on-scroll-up": "$HOME/.config/hypr/scripts/volume.sh --inc",
-    "on-scroll-down": "$HOME/.config/hypr/scripts/volume.sh --dec",
+    "on-scroll-up": "$HOME/.config/hypr/scripts/volume.sh up",
+    "on-scroll-down": "$HOME/.config/hypr/scripts/volume.sh down",
     "smooth-scrolling-threshold": 1
   },
 
@@ -166,15 +166,18 @@
             "headset": " headsets",
             "default": [""]
         },
-        "on-click": "pactl set-sink-mute @DEFAULT_SINK@ toggle",
-        "on-scroll-up": "pactl set-sink-volume @DEFAULT_SINK@ +5%",
-        "on-scroll-down": "pactl set-sink-volume @DEFAULT_SINK@ -5%"
+        "on-click": "$HOME/.config/hypr/scripts/volume.sh mute",
+        "on-click-right": "pavucontrol",
+        "on-scroll-up": "$HOME/.config/hypr/scripts/volume.sh up",
+        "on-scroll-down": "$HOME/.config/hypr/scripts/volume.sh down"
 
     },
 
     "clock": {
         // "format": " {:%I:%M %p}"
-        "format": " {:%d.%m.%Y | %H:%M}"
+        "format": " {:%d.%m.%Y | %H:%M}",
+        "tooltip": false,
+        "on-click": "$HOME/.config/waybar/scripts/calendar.sh"
     },
 
     "disk": {
@@ -232,7 +235,7 @@
     "custom/power": {
         "format": "", 
         "tooltip": false,
-        "on-click": "$HOME/.config/waybar/scripts/power_menu.sh" /* Command to open your wlogout menu */
+        "on-click": "$HOME/.config/rofi/powermenu.sh"
     } 
 
 }

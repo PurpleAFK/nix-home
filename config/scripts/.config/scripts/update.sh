@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Check if the script is run with root privileges
 if [ "$(id -u)" -ne 0 ]; then

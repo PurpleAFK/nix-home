@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # A simple system maintenance script for Fedora Linux.
 # This script performs the following tasks:
