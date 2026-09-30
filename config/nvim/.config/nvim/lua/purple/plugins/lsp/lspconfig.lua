@@ -10,9 +10,6 @@ return {
 		-- import lspconfig plugin
 		local lspconfig = require("lspconfig")
 
-		-- import mason_lspconfig plugin
-		local mason_lspconfig = require("mason-lspconfig")
-
 		-- import cmp-nvim-lsp plugin
 		local cmp_nvim_lsp = require("cmp_nvim_lsp")
 
@@ -133,9 +130,13 @@ return {
 			capabilities = capabilities,
 		})
 
+		-- 4. Servers without custom settings (these used to be installed by mason)
+		for _, server in ipairs({ "html", "cssls", "tailwindcss", "prismals", "pyright" }) do
+			vim.lsp.config(server, { capabilities = capabilities })
+		end
+
 		-- IMPORTANT: You must tell Neovim to actually start these configs for the current buffer
-		vim.lsp.enable("texlab")
-		vim.lsp.enable("lua_ls")
-		vim.lsp.enable("clangd")
+		-- The server binaries are installed by nix (modules/packages.nix), not mason
+		vim.lsp.enable({ "texlab", "lua_ls", "clangd", "html", "cssls", "tailwindcss", "prismals", "pyright" })
 	end,
 }

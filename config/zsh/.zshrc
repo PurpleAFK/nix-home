@@ -162,34 +162,30 @@ export PATH=$PATH:/home/purpleafk/.cargo/bin
 export PATH=$PATH:./waywall/build/waywall
 eval "$(oh-my-posh init zsh --config $HOME/.config/ohmyposh/pywal-theme.omp.json)"
 source $HOME/.config/scripts/fzf-git.sh
-source /home/purpleafk/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+# zsh-syntax-highlighting is loaded by zinit above
 eval "$(zoxide init zsh)"
 source <(fzf --zsh)
 
 
 # CODEFORCES_CP_SETUP
 export SCRIPT_DIR="/home/purpleafk/cf/scripts"
-source "$SCRIPT_DIR/cp_aliases.sh"
+[ -f "$SCRIPT_DIR/cp_aliases.sh" ] && source "$SCRIPT_DIR/cp_aliases.sh"
 
 
 # Competitive Programming Environment for contests
-source "$HOME/cf-contests/scripts/shell.sh"
+# ~/cf and ~/cf-contests live outside nix-home; restore them from a backup
+[ -f "$HOME/cf-contests/scripts/shell.sh" ] && source "$HOME/cf-contests/scripts/shell.sh"
 alias cf_gen="$HOME/cf/contests/scripts/cf_gen"
 alias cf_sample_gen="$HOME/cf/contests/scripts/cf_sample_gen"
 alias runsamples="$HOME/cf/contests/scripts/runsamples"
 # export CONTEST_SCRIPTS_DIR="/home/purpleafk/contests/scripts"
 # source "$CONTEST_SCRIPTS_DIR/aliases"
 
-# fnm
-FNM_PATH="/home/purpleafk/.local/share/fnm"
-if [ -d "$FNM_PATH" ]; then
-  export PATH="$FNM_PATH:$PATH"
-  eval "$(fnm env --shell zsh)"
-fi
+# fnm (installed by nix)
+eval "$(fnm env --shell zsh)"
 
 # convergence
 export CONVERGENCE_BIN="/home/purpleafk/bin"
-source "$CONVERGENCE_BIN"
 alias vd='~/bin/vdaily'
 alias vn='~/bin/vnote'
 alias vp='~/bin/vpaper'
@@ -200,7 +196,5 @@ alias vc='~/bin/vcommit'
 alias vend='~/bin/vendday'
 alias converge='cd ~/convergence && nvim'
 
-# opencode
-export PATH=/home/purpleafk/.opencode/bin:$PATH
+# opencode and spicetify are installed by nix
 
-export PATH=$PATH:/home/purpleafk/.spicetify

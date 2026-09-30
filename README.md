@@ -1,35 +1,40 @@
 # nix-home
 
-Home Manager (flake) version of the `~/dotfiles` stow repo. Nothing here has been activated yet.
+Home Manager (flake) version of the old `~/dotfiles` stow repo, running on NixOS.
 
 ## Layout
 - `flake.nix`, `home.nix` – entry point (user `purpleafk`, `x86_64-linux`)
-- `modules/packages.nix` – packages installed through nix
+- `modules/packages.nix` – packages installed through nix (incl. nvim's LSPs/formatters)
 - `modules/files.nix` – replaces `stow`: symlinks `config/*` into `~`
+- `modules/services.nix` – user services (polkit agent for Hyprland)
 - `modules/git.nix` – git identity
-- `config/` – copy of every stow package from `~/dotfiles` (unchanged)
+- `nixos/system.nix` – system-level extras (flatpak, docker, NVIDIA PRIME); imported from `/etc/nixos/configuration.nix`, not part of the flake
+- `config/` – every stow package from the old dotfiles
 
-Links point **out of the store** to `~/nix-home/config`, so editing a config takes effect immediately without rebuilding. If you move this folder, update `repoDir` in `home.nix`.
+Links point **out of the store** to `~/nix-home/config`, so editing a config takes effect immediately without rebuilding. If you move this folder, update `repoDir` in `home.nix` and the import path in `configuration.nix`.
 
 ## Install (NixOS)
-1. In `/etc/nixos/configuration.nix` enable flakes and Hyprland (system level):
+1. In `/etc/nixos/configuration.nix` enable flakes and Hyprland (system level) and import `nixos/system.nix`:
    ```nix
+   imports = [ ./hardware-configuration.nix /home/purpleafk/nix-home/nixos/system.nix ];
+
    nix.settings.experimental-features = [ "nix-command" "flakes" ];
    programs.hyprland.enable = true;
    programs.zsh.enable = true;
    users.users.purpleafk.shell = pkgs.zsh;
    security.pam.services.hyprlock = {};   # hyprlock can't unlock without this
    ```
-   then `sudo nixos-rebuild switch`.
+   `nixos/system.nix` has the GPU bus IDs of this laptop (`lspci | grep -E 'VGA|3D'`); change them on other hardware.
+   Then `sudo nixos-rebuild switch`.
 2. Clone the repo to `~/nix-home` (the path matters, see `repoDir` in `home.nix`):
    ```sh
    git clone https://github.com/PurpleAFK/nix-home.git ~/nix-home
    ```
 3. First activation (home-manager isn't installed yet, so run it through `nix run`):
    ```sh
-   nix run home-manager/master -- switch --flake ~/nix-home#purpleafk
+   nix run home-manager/master -- switch -b backup --flake ~/nix-home#purpleafk
    ```
-   If it complains about existing files (e.g. an old `~/.zshrc`), move them away or add `-b backup`.
+   `-b backup` renames files that are in the way (e.g. an old `~/.zshrc`) to `*.backup`.
 4. From then on, after changing any `.nix` file:
    ```sh
    home-manager switch --flake ~/nix-home#purpleafk
@@ -38,18 +43,18 @@ Links point **out of the store** to `~/nix-home/config`, so editing a config tak
 5. Update everything: `nix flake update --flake ~/nix-home` then switch again.
 6. Log out and pick Hyprland in your display manager.
 
+## Notes
+- **LSPs** come from nix (`modules/packages.nix`), not mason; mason was removed because its prebuilt binaries don't run on NixOS. To add a server: add the package, then add its name to `vim.lsp.enable` in `nvim/.../plugins/lsp/lspconfig.lua`. Run `:Lazy clean` once to drop the old mason plugins.
+- **GPU**: the AMD iGPU drives the display; run something on the NVIDIA card with `nvidia-offload <cmd>`.
+- **Flatpak**: flathub is added automatically; the old app list is gone, so reinstall with `flatpak install flathub <id>`.
+- **Docker**: your user is in the `docker` group (log out and back in after the first rebuild).
+- **Wallpapers**: `~/.local/share/wallpapers` links to `config/wall/wallpapers`.
+
 ## TODO
-- [ ] Fix polkit in `hypr/hyprland.conf`: it starts `/usr/lib/polkit-gnome/...`, which doesn't exist on NixOS.
-      Use `${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1`, or
-      `exec-once = systemctl --user start polkit-gnome-authentication-agent-1` if you enable it in NixOS.
-- [ ] Install LSPs via `home.packages` instead of mason (its prebuilt binaries often fail on NixOS).
-- [ ] Copy over what `.zshrc` sources from outside this repo (`~/cf-contests`, `~/cf/scripts`, fnm, opencode, spicetify).
-- [ ] Copy your `~/.local/share/wallpapers` folder over (`config/wall/wallpapers` is kept but not linked).
-- [ ] Move flatpaks, docker and GPU drivers into `configuration.nix`.
 - [ ] Add niri
 - [ ] Add GNOME
 
 ## Not managed here
-- flatpaks (`system/flatpak-packages.txt` in the old dotfiles), docker, GPU drivers: those go in `configuration.nix` (see TODO)
+- `~/cf` and `~/cf-contests` (competitive programming scripts `.zshrc` sources if present): restore them from a backup
 - zsh plugins are still fetched by zinit at first shell start
 - `config/helium/startpage.html` is copied but not linked anywhere

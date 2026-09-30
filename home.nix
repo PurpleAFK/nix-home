@@ -5,6 +5,7 @@
     ./modules/packages.nix
     ./modules/files.nix
     ./modules/git.nix
+    ./modules/services.nix
   ];
 
   home.username = "purpleafk";

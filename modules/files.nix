@@ -34,7 +34,8 @@ in
     # ~/bin -> scripts (same as stow did; .zshrc's convergence aliases use ~/bin)
     "bin".source = link "bin/bin";
 
-    # config/wall/wallpapers is kept but NOT linked: ~/.local/share/wallpapers
-    # is a real folder with your own collection.
   };
+
+  # Read by hypr/scripts/wal-set.sh and grid-wal-set.sh
+  xdg.dataFile."wallpapers".source = link "wall/wallpapers";
 }

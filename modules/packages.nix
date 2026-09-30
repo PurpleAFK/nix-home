@@ -29,6 +29,24 @@
     nodejs
     tree-sitter
 
+    # LSPs + formatters for nvim (instead of mason, whose binaries don't run on NixOS)
+    lua-language-server
+    clang-tools                    # clangd
+    pyright
+    texlab
+    vscode-langservers-extracted   # html, cssls
+    tailwindcss-language-server
+    prisma-language-server
+    prettier
+    stylua
+    isort
+    black
+
+    # things .zshrc used to pull from outside the repo
+    fnm
+    opencode
+    spicetify-cli
+
     # theming
     pywal
     imagemagick   # pywal's palette backend + rofi wallpaper-picker thumbnails
@@ -64,7 +82,6 @@
     hyprlock
     hyprshot
     easyeffects
-    polkit_gnome
     pavucontrol
 
     # apps (zen-browser, helium, sublime4 come from overlays in flake.nix)
