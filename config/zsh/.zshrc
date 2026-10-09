@@ -1,7 +1,3 @@
-autoload -Uz promptinit
-promptinit
-prompt adam1
-
 setopt histignorealldups sharehistory
 
 # Plugin Manager
@@ -29,8 +25,13 @@ SAVEHIST=1000
 HISTFILE=~/.zsh_history
 
 # Use modern completion system
+# Only rebuild the dump (~1s) when it's over a day old; otherwise trust it (-C)
 autoload -Uz compinit
-compinit
+if [[ -n ${ZDOTDIR:-$HOME}/.zcompdump(#qN.mh+24) ]]; then
+  compinit
+else
+  compinit -C
+fi
 
 zstyle ':completion:*:default' list-colors ${(s.:.)LS_COLORS}
 zstyle ':completion:*' menu no

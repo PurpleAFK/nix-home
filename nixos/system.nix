@@ -28,6 +28,12 @@ in
   };
   environment.systemPackages = [ pkgs.sbctl ];
 
+  # --- zsh -------------------------------------------------------------------
+  # ~/.zshrc runs compinit (after zinit adds fpath) and oh-my-posh sets the
+  # prompt; the global ones just double startup time and fight over .zcompdump.
+  programs.zsh.enableGlobalCompInit = false;
+  programs.zsh.promptInit = "";
+
   # --- flatpak ---------------------------------------------------------------
   services.flatpak.enable = true;
   # Add flathub once at boot; install apps with `flatpak install flathub <id>`.
