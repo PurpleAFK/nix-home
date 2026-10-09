@@ -8,7 +8,7 @@ Home Manager (flake) version of the old `~/dotfiles` stow repo, running on NixOS
 - `modules/files.nix` – replaces `stow`: symlinks `config/*` into `~`
 - `modules/services.nix` – user services (polkit agent for Hyprland)
 - `modules/git.nix` – git identity
-- `nixos/system.nix` – system-level extras (flatpak, docker, NVIDIA PRIME); imported from `/etc/nixos/configuration.nix`, not part of the flake
+- `nixos/system.nix` – system-level extras (lanzaboote, flatpak, docker, NVIDIA PRIME); imported from `/etc/nixos/configuration.nix`, not part of the flake
 - `config/` – every stow package from the old dotfiles
 
 Links point **out of the store** to `~/nix-home/config`, so editing a config takes effect immediately without rebuilding. If you move this folder, update `repoDir` in `home.nix` and the import path in `configuration.nix`.

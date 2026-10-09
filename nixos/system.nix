@@ -2,9 +2,32 @@
 # import it from /etc/nixos/configuration.nix
 #   imports = [ ./hardware-configuration.nix /home/purpleafk/nix-home/nixos/system.nix ];
 # then `sudo nixos-rebuild switch`.
-{ pkgs, ... }:
+{ pkgs, lib, ... }:
 
+let
+  # Not in nixpkgs and this system config isn't a flake, so pin a release.
+  # Bump: nix-prefetch-url --unpack <tarball url>
+  lanzaboote = import (builtins.fetchTarball {
+    url = "https://github.com/nix-community/lanzaboote/archive/v1.2.0.tar.gz";
+    sha256 = "0syvqpi77ia1vd189658g53mqjgw7i39zym2r0g7asdjkrz0mgmj";
+  }) { };
+in
 {
+  imports = [ lanzaboote.nixosModules.lanzaboote ];
+
+  # --- lanzaboote (Secure Boot ready systemd-boot) ---------------------------
+  # Replaces plain systemd-boot. Boots fine with Secure Boot off; keys are
+  # generated into /var/lib/sbctl on activation but NOT enrolled. To turn
+  # Secure Boot on later: put the firmware in Setup Mode, then
+  # `sudo sbctl enroll-keys --microsoft` and enable it in the firmware.
+  boot.loader.systemd-boot.enable = lib.mkForce false;
+  boot.lanzaboote = {
+    enable = true;
+    pkiBundle = "/var/lib/sbctl";
+    autoGenerateKeys.enable = true;
+  };
+  environment.systemPackages = [ pkgs.sbctl ];
+
   # --- flatpak ---------------------------------------------------------------
   services.flatpak.enable = true;
   # Add flathub once at boot; install apps with `flatpak install flathub <id>`.
