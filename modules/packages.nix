@@ -95,5 +95,6 @@
     zotero
     anki
     foliate
+    obsidian
   ];
 }
