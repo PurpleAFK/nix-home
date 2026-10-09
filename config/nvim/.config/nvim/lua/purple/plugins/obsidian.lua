@@ -54,8 +54,9 @@ return {
 				opts = { noremap = false, expr = true, buffer = true },
 			},
 			["<CR>"] = {
+				-- follow link > fold heading > toggle checkbox (only on list items)
 				action = function()
-					return require("obsidian").util.smart_action()
+					return require("purple.notes").obsidian_enter()
 				end,
 				opts = { buffer = true, expr = true },
 			},

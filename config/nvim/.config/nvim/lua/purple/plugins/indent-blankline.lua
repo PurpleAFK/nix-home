@@ -7,5 +7,8 @@ return {
 		indent = {
 			char = { "│" },
 		},
+		exclude = {
+			filetypes = { "markdown" },
+		},
 	},
 }
