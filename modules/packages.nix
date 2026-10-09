@@ -20,6 +20,7 @@
     cava
     btop
     gh
+    python3                        # competitive-programming scripts, paos/paot aliases
 
     # neovim + what its plugins (treesitter, mason, telescope) shell out to
     neovim

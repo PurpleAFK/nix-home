@@ -174,13 +174,12 @@ export SCRIPT_DIR="/home/purpleafk/codeforces/scripts"
 
 
 # Competitive Programming Environment for contests
-# ~/cf and ~/cf-contests live outside nix-home; restore them from a backup
-# [ -f "$HOME/cf-contests/scripts/shell.sh" ] && source "$HOME/cf-contests/scripts/shell.sh"
 alias cf_gen="$HOME/codeforces/contests/scripts/cf_gen"
 alias cf_sample_gen="$HOME/codeforces/contests/scripts/cf_sample_gen"
 alias runsamples="$HOME/codeforces/contests/scripts/runsamples"
 export CONTEST_SCRIPTS_DIR="/home/purpleafk/competitive-programming/scripts"
-source "$CONTEST_SCRIPTS_DIR/"
+# defines cf, cfc, switch, archive (needs python3)
+[ -f "$CONTEST_SCRIPTS_DIR/shell.sh" ] && source "$CONTEST_SCRIPTS_DIR/shell.sh"
 
 # fnm (installed by nix)
 eval "$(fnm env --shell zsh)"
