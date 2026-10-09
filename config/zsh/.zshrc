@@ -25,13 +25,17 @@ SAVEHIST=1000
 HISTFILE=~/.zsh_history
 
 # Use modern completion system
-# Only rebuild the dump (~1s) when it's over a day old; otherwise trust it (-C)
+# Own dump file so it doesn't fight NixOS's global compinit over ~/.zcompdump.
+# Only rebuild it (~1s) when it's over a day old; otherwise trust it (-C)
 autoload -Uz compinit
-if [[ -n ${ZDOTDIR:-$HOME}/.zcompdump(#qN.mh+24) ]]; then
-  compinit
+_zcompdump=${XDG_CACHE_HOME:-$HOME/.cache}/zsh/zcompdump
+[[ -d ${_zcompdump:h} ]] || mkdir -p ${_zcompdump:h}
+if [[ -n $_zcompdump(#qN.mh+24) ]]; then
+  compinit -d $_zcompdump
 else
-  compinit -C
+  compinit -C -d $_zcompdump
 fi
+unset _zcompdump
 
 zstyle ':completion:*:default' list-colors ${(s.:.)LS_COLORS}
 zstyle ':completion:*' menu no
